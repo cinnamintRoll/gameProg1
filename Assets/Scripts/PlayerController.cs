@@ -10,7 +10,7 @@ public class PlayerController : MonoBehaviour
     public float boostDuration = 3.0f;
 
     private Rigidbody playerRb;
-    private float xBound = 8.0f;
+    private float xBound = 10.0f;
     private float yBound = 32.0f;
 
 
@@ -46,16 +46,6 @@ public class PlayerController : MonoBehaviour
             lastBoostTime = Time.time;
             StartCoroutine(BoostDurationCoroutine());
         }
-
-        // display the remaining cooldown time and the remaining boost time
-        float remainingCooldown = Mathf.Max(0f, boostCooldown - (Time.time - lastBoostTime));
-        Debug.Log("Boost cooldown remaining: " + remainingCooldown + " seconds.");
-
-        if (Time.time - lastBoostTime < boostDuration)
-        {
-            float remainingBoostTime = boostDuration - (Time.time - lastBoostTime);
-            Debug.Log("Boost remaining time: " + remainingBoostTime + " seconds.");
-        }
     }
 
     //Prevents player from leaving the screen (for future development purposes)
@@ -78,7 +68,7 @@ public class PlayerController : MonoBehaviour
     IEnumerator BoostDurationCoroutine()
     {
         yield return new WaitForSeconds(boostDuration); // wait for the duration of the speed boost
-        speed /= 2f; // reset the movement speed to its original value
+        speed /= 1.5f; // reset the movement speed to its original value
     }
 }
 
