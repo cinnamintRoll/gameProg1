@@ -18,4 +18,14 @@ public class Bullet : MonoBehaviour
     {
         Destroy(gameObject);
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Breakable"))
+        {
+            Destroy(other.gameObject);
+            Destroy(gameObject);
+        }
+
+    }
 }

@@ -4,11 +4,12 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     private GameManager gameManager;
+    private Animator playerAnim;
 
     private float speed = 3.0f;
     private float jumpForce = 2.5f;
     private bool doubleJumpAvailable = true;
-    private float secondJumpForce = 1.5f;
+    private float secondJumpForce = 2.5f;
     public bool isOnGround = true;
     private float lastBoostTime;
     public float boostCooldown = 5.0f;
@@ -20,6 +21,7 @@ public class PlayerController : MonoBehaviour
 
     public bool hasPowerup = false;
 
+
     //shooting variables
     public Transform bulletSpawnLocation;
     public GameObject bulletPrefab;
@@ -30,6 +32,7 @@ public class PlayerController : MonoBehaviour
     {
         playerRb = GetComponent<Rigidbody>();
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+        playerAnim = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -64,6 +67,7 @@ public class PlayerController : MonoBehaviour
             {
                 playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
                 isOnGround = false;
+                playerAnim.SetTrigger("Jump_trig");
                 doubleJumpAvailable = true;
             }
             else if (doubleJumpAvailable)
@@ -79,6 +83,7 @@ public class PlayerController : MonoBehaviour
             speed *= 1.5f;
             lastBoostTime = Time.time;
             StartCoroutine(BoostDurationCoroutine());
+            playerAnim.SetBool("isRunning", true);
         }
         ShootBullets();
     }
@@ -98,7 +103,7 @@ public class PlayerController : MonoBehaviour
             direction = -1;
         }
 
-        if (Input.GetKeyDown(KeyCode.J))
+        if (Input.GetKeyDown(KeyCode.J) && hasPowerup)
         {
             GameObject bullet = Instantiate(bulletPrefab, bulletSpawnLocation.position, Quaternion.identity);
             bullet.GetComponent<Bullet>().speed *= direction;
@@ -130,6 +135,7 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isOnGround = true;
+            doubleJumpAvailable = true;
         }
 
         else if (collision.gameObject.CompareTag("OutOfBounds"))
@@ -140,6 +146,8 @@ public class PlayerController : MonoBehaviour
         else if (collision.gameObject.CompareTag("enemyProjectile"))
         {
             Destroy(gameObject);
+            playerAnim.SetBool("Death_b", true);
+            playerAnim.SetInteger("DeathType_int", 1);
             gameManager.GameOver();
         }
     }
