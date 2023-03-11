@@ -16,10 +16,14 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody playerRb;
     private float xBound = 10.0f;
-    private float yBound = 32.0f;
+    private float yBound = 35.0f;
 
     public bool hasPowerup = false;
 
+    //shooting variables
+    public Transform bulletSpawnLocation;
+    public GameObject bulletPrefab;
+    public float bulletDuration = 3f;
 
     // Start is called before the first frame update
     void Start()
@@ -76,7 +80,32 @@ public class PlayerController : MonoBehaviour
             lastBoostTime = Time.time;
             StartCoroutine(BoostDurationCoroutine());
         }
+        ShootBullets();
     }
+
+    public void ShootBullets()
+    {
+        float direction = 0; //-1 if left, 1 if right
+
+        if (Input.GetAxis("Horizontal") >= 0)
+        {
+            bulletSpawnLocation.position = transform.position + new Vector3(0.75f, 0, 0);
+            direction = 1;
+        }
+        else if (Input.GetAxis("Horizontal") < 0)
+        {
+            bulletSpawnLocation.position = transform.position - new Vector3(0.75f, 0, 0);
+            direction = -1;
+        }
+
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            GameObject bullet = Instantiate(bulletPrefab, bulletSpawnLocation.position, Quaternion.identity);
+            bullet.GetComponent<Bullet>().speed *= direction;
+            Destroy(bullet, bulletDuration);
+        }
+    }
+
 
     //Prevents player from leaving the screen (for future development purposes)
     void ConstrainPlayerPosition()
@@ -103,7 +132,12 @@ public class PlayerController : MonoBehaviour
             isOnGround = true;
         }
 
-        if (collision.gameObject.CompareTag("OutOfBounds"))
+        else if (collision.gameObject.CompareTag("OutOfBounds"))
+        {
+            Destroy(gameObject);
+            gameManager.GameOver();
+        }
+        else if (collision.gameObject.CompareTag("enemyProjectile"))
         {
             Destroy(gameObject);
             gameManager.GameOver();

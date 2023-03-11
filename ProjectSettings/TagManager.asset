@@ -6,11 +6,13 @@ TagManager:
   tags:
   - Ground
   - Powerup
+  - OutOfBounds
+  - enemyProjectile
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - platformLayer
   - Water
   - UI
   - 
