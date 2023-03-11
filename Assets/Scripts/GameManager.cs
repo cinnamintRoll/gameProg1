@@ -1,11 +1,10 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    public float goalPosition = 8.0f;
-    public Transform player;
 
-    private string message = "Contratulations you've won";
+    public bool isGameActive;
 
     // Start is called before the first frame update
     void Start()
@@ -17,9 +16,16 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         //if player is on designated position, congratulate them.
-        if (player.position.x >= goalPosition)
-        {
-            Debug.Log(message);
-        }
+
+    }
+    public void GameOver()
+    {
+        isGameActive = false;
+        RestartGame();
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    private GameManager gameManager;
+
     private float speed = 3.0f;
     private float jumpForce = 2.5f;
     private bool doubleJumpAvailable = true;
@@ -23,6 +25,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         playerRb = GetComponent<Rigidbody>();
+        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
@@ -99,6 +102,12 @@ public class PlayerController : MonoBehaviour
         {
             isOnGround = true;
         }
+
+        if (collision.gameObject.CompareTag("OutOfBounds"))
+        {
+            Destroy(gameObject);
+            gameManager.GameOver();
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -113,4 +122,3 @@ public class PlayerController : MonoBehaviour
 
     }
 }
-
