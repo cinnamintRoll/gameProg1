@@ -3,8 +3,11 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private float speed = 5.0f;
+    private float speed = 3.0f;
     private float jumpForce = 2.5f;
+    private bool doubleJumpAvailable = true;
+    private float secondJumpForce = 1.5f;
+    public bool isOnGround = true;
     private float lastBoostTime;
     public float boostCooldown = 5.0f;
     public float boostDuration = 3.0f;
@@ -36,7 +39,17 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            if (isOnGround)
+            {
+                playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                isOnGround = false;
+                doubleJumpAvailable = true;
+            }
+            else if (doubleJumpAvailable)
+            {
+                playerRb.AddForce(Vector3.up * secondJumpForce, ForceMode.Impulse);
+                doubleJumpAvailable = false;
+            }
         }
 
         //Speed Boost
@@ -69,6 +82,14 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitForSeconds(boostDuration); // wait for the duration of the speed boost
         speed /= 1.5f; // reset the movement speed to its original value
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isOnGround = true;
+        }
     }
 }
 
