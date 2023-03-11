@@ -16,6 +16,8 @@ public class PlayerController : MonoBehaviour
     private float xBound = 10.0f;
     private float yBound = 32.0f;
 
+    public bool hasPowerup = false;
+
 
     // Start is called before the first frame update
     void Start()
@@ -28,6 +30,18 @@ public class PlayerController : MonoBehaviour
     {
         MovePlayer();
         ConstrainPlayerPosition();
+    }
+
+    IEnumerator PowerupCountdownRoutine()
+    {
+        yield return new WaitForSeconds(7);
+        hasPowerup = false;
+    }
+
+    IEnumerator BoostDurationCoroutine()
+    {
+        yield return new WaitForSeconds(boostDuration); // wait for the duration of the speed boost
+        speed /= 1.5f; // reset the movement speed to its original value
     }
 
     //Moves player based on directional input
@@ -78,11 +92,6 @@ public class PlayerController : MonoBehaviour
             transform.position = new Vector3(transform.position.x, yBound, transform.position.z);
         }
     }
-    IEnumerator BoostDurationCoroutine()
-    {
-        yield return new WaitForSeconds(boostDuration); // wait for the duration of the speed boost
-        speed /= 1.5f; // reset the movement speed to its original value
-    }
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -90,6 +99,18 @@ public class PlayerController : MonoBehaviour
         {
             isOnGround = true;
         }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Powerup"))
+        {
+            hasPowerup = true;
+            Destroy(other.gameObject);
+            StartCoroutine(PowerupCountdownRoutine());
+            Debug.Log(hasPowerup);
+        }
+
     }
 }
 
