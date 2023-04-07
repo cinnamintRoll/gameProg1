@@ -1,73 +1,95 @@
+using System.Linq;
 using UnityEngine;
 
 public class EnemyBehaviour : MonoBehaviour
 {
-    public float speed = 5.0f;
-    public float distance = 5.0f;
-    public float leftThreshold = -0.5f;
-    public float rightThreshold = 8.7f;
-    public GameObject projectilePrefab;
-    public float projectileSpeed = 10.0f; // Add a variable for projectile speed
-    public float shootInterval = 3.0f;
-    private bool movingRight = true;
-    private float startX;
-    private float lastShotTime;
-    private GameManager gameManager;
+    [SerializeField] private float _gunRange;
+    [SerializeField] private Transform _leftDepth;
+    [SerializeField] private Transform _rightDepth;
+    [SerializeField] private Transform _floorDepth;
+    [SerializeField] private GameObject _bulletPrefab;
 
-    void Start()
+    [SerializeField] private float _depthRange = 1f;
+    [SerializeField] private float _gravity = 2f;
+    [SerializeField] private float _speed = 20f;
+    [SerializeField] private float _projectileCooldown = 3f;
+    /// <summary>
+    /// refers to left or right, right if true , left if false
+    /// </summary>
+    private bool _direction = false;
+    private float _directionInt => _direction ? 1 : -1;
+
+    private float _lastFireTime;
+
+    private void Update()
     {
-        startX = transform.position.x;
-        lastShotTime = Time.time;
-        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
-    }
+        Gravity();
 
-    void Update()
-    {
-        // Set the direction of movement based on the movingRight variable
-        Vector3 direction = movingRight ? Vector3.right : Vector3.left;
-        // Move the enemy in the current direction
-        transform.Translate(direction * speed * Time.deltaTime);
-
-        // Check if the enemy has reached a threshold position
-        if (transform.position.x >= rightThreshold)
+        if (!HasFloor(_rightDepth))
         {
-            movingRight = false;
-        }
-        else if (transform.position.x <= leftThreshold)
-        {
-            movingRight = true;
+            _direction = false;
         }
 
-        // Check if the enemy has moved beyond the distance limit
-        if (Mathf.Abs(transform.position.x - startX) > distance)
+        if (!HasFloor(_leftDepth))
         {
-            // Reverse the direction of movement
-            movingRight = !movingRight;
-            // Reset the start position to the current position
-            startX = transform.position.x;
+            _direction = true;
         }
 
-        // Check if it's time to shoot again
-        if (Time.time > lastShotTime + shootInterval)
-        {
-            // Shoot the projectile
-            GameObject projectile = Instantiate(projectilePrefab, new Vector3(this.transform.position.x + 1, this.transform.position.y, this.transform.position.z), Quaternion.identity);
-            projectile.GetComponent<Rigidbody>().velocity = transform.right * projectileSpeed; // Set the speed of the projectile
+        MoveObject();
 
-            // Reset the timer
-            lastShotTime = Time.time;
+        if (HasDetectedPlayer())
+        {
+            FireProjectile();
         }
     }
 
-    // Called when the projectile collides with another object
-    void OnCollisionEnter(Collision collision)
+
+    private bool HasFloor(Transform depth)
     {
-        // Check if the collision is with the player
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            // Destroy the player object
-            Destroy(collision.gameObject);
-            gameManager.GameOver();
-        }
+        var rays = Physics2D.RaycastAll(depth.position, Vector2.down, _depthRange);
+        return rays.Any(ray => ray.collider);
     }
+
+    private void MoveObject()
+    {
+
+        var speedMath = _directionInt * Time.deltaTime * _speed;
+        var transform1 = this.transform;
+        var currentPos = transform1.position;
+        transform1.position = new Vector3(currentPos.x + speedMath, currentPos.y, currentPos.z);
+    }
+
+    private void Gravity()
+    {
+        if (HasFloor(_floorDepth)) return;
+
+        var transform1 = this.transform;
+        var currentPos = transform1.position;
+        transform1.position = new Vector3(currentPos.x, currentPos.y - _gravity * Time.deltaTime, currentPos.z);
+    }
+
+    private bool HasDetectedPlayer()
+    {
+        var rays = Physics2D.RaycastAll(this.transform.position, Vector2.right * _directionInt, _gunRange);
+        return rays.Any(ray => ray.collider && ray.collider.gameObject.CompareTag("Player"));
+    }
+
+    private void FireProjectile()
+    {
+        if (!(Time.time - _lastFireTime > _projectileCooldown)) return;
+        _lastFireTime = Time.time;
+
+        var position = this.transform.position;
+
+        var bullet = Instantiate(_bulletPrefab, new Vector3(position.x + (2 * _directionInt), position.y, position.z), Quaternion.identity);
+        bullet.SetActive(false);
+        var bulletComp = bullet.GetComponent<EnemyBullet>();
+        bulletComp.SetDirection(!_direction);
+        bullet.SetActive(true);
+    }
+
+
+
+
+
 }

@@ -2,28 +2,39 @@ using UnityEngine;
 
 public class EnemyBullet : MonoBehaviour
 {
-    public float speed = 100;
-    // Start is called before the first frame update
-    void Start()
-    {
+    private Rigidbody2D _rb;
+    private float _speed = 1000f;
+    private bool isRight;
+    private Vector2 TargetDirection => isRight ? Vector2.right : Vector2.left;
 
+    public void SetDirection(bool isRight)
+    {
+        this.isRight = isRight;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Awake()
     {
-        transform.Translate(Vector3.right * speed * Time.deltaTime);
-    }
-    private void OnCollisionEnter(Collision collision)
-    {
-        Destroy(gameObject);
+        _rb = GetComponent<Rigidbody2D>();
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void Start()
     {
-        if (other.CompareTag("Player"))
+        _rb.AddForce(Vector2.right * _speed);
+    }
+
+    private void OnCollisionEnter2D(Collision2D col)
+    {
+        switch (col.gameObject.tag)
         {
-            Destroy(other.gameObject);
+            case "Platform":
+            case "Player":
+            case "Death":
+            case "Enemy":
+                break;
+            default:
+                Destroy(col.gameObject);
+                break;
         }
+
     }
 }
